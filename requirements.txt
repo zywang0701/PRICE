@@ -1,0 +1,13 @@
+# CPU chain (experiments/, paper_assets/, tests/). Python >= 3.10.
+numpy>=1.26
+pandas>=2.1
+pyarrow>=14
+scipy>=1.11
+scikit-learn>=1.4
+numba>=0.59              # E20 voting-table kernel
+pyyaml>=6
+matplotlib>=3.8
+tqdm>=4.66
+pytest>=8
+math-verify>=0.6
+huggingface_hub>=0.25   # scripts/download_data.py

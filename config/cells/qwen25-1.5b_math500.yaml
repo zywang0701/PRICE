@@ -1,0 +1,10 @@
+# Cell qwen25-1.5b_math500: Qwen/Qwen2.5-1.5B-Instruct x math500 (plan §3.3; gates omitted per 2026-07-08 decision)
+cell:
+  name: qwen25-1.5b_math500
+  model_key: qwen25-1.5b
+  task: math500
+generation:
+  model: Qwen/Qwen2.5-1.5B-Instruct
+  shard_size: 50
+data:
+  dataset: math500

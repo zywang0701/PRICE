@@ -1,0 +1,4 @@
+{
+  "model": "unsloth/Llama-3.2-3B-Instruct",
+  "template": "Question: {question}\n\nProposed answer: {answer}\n\nIs the proposed answer correct? Answer with a single word, True or False.\n"
+}

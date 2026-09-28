@@ -1,0 +1,27 @@
+# data and every computed artifact stay out of git (see README: Data)
+outputs/
+build/
+legacy_artifacts/
+logs/
+**/logs/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+# experiment outputs (per-cell folders and result files inside experiments/)
+experiments/E02_frozen/*
+experiments/**/qwen/
+experiments/**/llama/
+experiments/**/*.npz
+experiments/**/*.npy
+experiments/**/*.pkl
+experiments/**/*.parquet
+experiments/**/*.csv
+experiments/**/*.json
+experiments/**/*.log
+experiments/**/*.txt
+experiments/**/*.pdf
+experiments/**/*.png
+experiments/**/*.tex
+paper_assets/*.json

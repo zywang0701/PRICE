@@ -1,0 +1,15 @@
+# Query-only committed deployment
+
+Question: does the deployed gain against E23/Table 3 baselines survive when n and voting temperature must be fixed before observing any rollout?
+
+Primary policy: from only the new query's embedding, estimate Vhat(tau,n;q) and log Mhat(q), then choose the global maximizer of Vhat - lambda * exp(n log Mhat) over n=1..64 and the existing 13-temperature grid. No pilot, prefix, realized token length, answer, score or correctness label enters action selection. Different queries may receive different committed counts. At a fixed price, every replay path of a query gets the same n and tau. Frontier randomization is between complete policies before sampling.
+
+Reuse E22 fit/tune/audit query membership, score CDF, P(True) scoring versions, 32-dimensional fit-only PCA and fit-only query cost prior. Learn reward curves from E22 fit-query V targets. Prespecified query-only candidates: constant fit mean; ridge on PCA coordinates with degree 1 or 2 and alpha 1/10/100/1000; uniform nearest-neighbor means in normalized full query-embedding space with k=32/128/512. Select by clipped tune-query reward-curve MSE, before test evaluation. This is a reasonable calibrated implementation, not a claim to be the optimal possible query-only learner.
+
+With the selected model, evaluate a joint committed arm and 13 fixed-temperature committed arms. On tune queries, select the best fixed temperature per original Table 3 budget; choose joint as the primary policy only if its average accuracy across these budgets exceeds this fixed comparator. Freeze the selection and model hash before test. Keep both fixed and joint results as diagnostics.
+
+Price grid: zero plus 16,385 log-spaced values with log lambda from -450 to 6. Compute exact discrete per-query optimizers through upper hulls; retain distinct action states plus representatives of the nested half grid. Validate against brute-force argmax and check half-grid sensitivity. All main and bootstrap comparisons use valid mixtures on the realized MGF cost scale, gamma=.0029262. The model's iid Mhat^n cost is used only for selecting actions; actual replay prefix tokens determine evaluation cost.
+
+Reuse all six E23 baseline arrays and its frozen sequential PRICE choices. Same query cohort, E16 repaired grading, 64 replay paths and horizon. Main readout: retrospective frontier at the exact original Table 3 risk columns. Also price on audit calibration data and apply unchanged to test, reporting actual out-of-sample risk and accuracy rather than guaranteed budget compliance.
+
+800 paired query bootstrap draws, recomputing all frontiers and the best baseline on each draw, while freezing training and calibration-selected arms. Report committed minus best baseline and committed minus sequential, not only adaptive-voting gain. Generated-token costs exclude scorer, embedding and controller overhead. No new GPU scoring or rollout generation is needed. Save standalone result tables and blue LaTeX/PDF preview, without replacing the manuscript.

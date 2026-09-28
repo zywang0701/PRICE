@@ -1,0 +1,132 @@
+# F-campaign pinned parameters (plan §13 "Pre-registered constants").
+# Per-(model, task) cells overlay this base: see config/cells/*.yaml.
+paths:
+  outputs: outputs
+  pool: outputs/pools/pool.parquet
+  pilot_pool: outputs/pools/pilot_pool.parquet
+  embeddings: outputs/pools/embeddings.npz
+  tables: outputs/tables/tables.npz
+  frontiers: outputs/frontiers
+  online: outputs/online
+  figures: outputs/figures
+  pilot_report: outputs/pilot/report.json
+
+cell:
+  name: null                      # set by the cell overlay (config/cells/<name>.yaml)
+
+data:
+  dataset: math500                # math500 | gsm8k | olympiadbench | mmlupro
+  hf_id_math500: HuggingFaceH4/MATH-500
+  hf_id_mathtrain: EleutherAI/hendrycks_math
+  hf_id_gsm8k: openai/gsm8k
+  hf_id_olympiadbench: Hothan/OlympiadBench
+  olympiadbench_subset: OE_TO_maths_en_COMP   # open-ended, text-only, EN, competition math (~674)
+  hf_id_mmlupro: TIGER-Lab/MMLU-Pro
+  subset_size: null               # mmlupro: stratified-by-category subset size (500 in the plan)
+  subset_seed: 20260708           # pinned seed for the stratified subset (plan §3.2)
+  difficulty_levels: null         # math500: null = all; else e.g. [4, 5]
+  max_queries: null               # null = full set; small int for smoke tests
+
+generation:
+  model: null                     # set per cell
+  m_rollouts: 128                 # pool size per query
+  m_pilot: 8                      # rollouts per query in the pilot
+  temperature: 0.8
+  top_p: 1.0
+  max_new_tokens: 2048            # 4096 on OlympiadBench cells (longer solutions)
+  max_model_len: 8192             # vLLM context cap (prompt + generation); bounds KV-cache sizing
+  logprobs_topk: 5                # per-position top-k logprobs kept (phi_lik / selfcert / deepconf)
+  deepconf_window: 128            # sliding-window length (tokens) for the group-confidence stats
+  shard_size: 50                  # queries per shard (resumable); smaller on long/large cells
+  seed: 20260707
+  system_prompt: null             # null -> prompts.<dataset> below
+
+# Per-task default system prompts (used when generation.system_prompt is null).
+prompts:
+  math500: >
+    Solve the following math problem step by step.
+    Put your final answer inside \boxed{}.
+  # must stay byte-identical to math500: the calibration corpus has to be drawn
+  # from the same generation law as the evaluation set for its primitives to
+  # transfer
+  mathtrain: >
+    Solve the following math problem step by step.
+    Put your final answer inside \boxed{}.
+  gsm8k: >
+    Solve the following math problem step by step.
+    Put your final answer inside \boxed{}.
+  olympiadbench: >
+    Solve the following competition math problem step by step.
+    Simplify your final answer as much as possible,
+    and put it inside \boxed{}.
+  mmlupro: >
+    Answer the following multiple choice question.
+    Think step by step, then finish your response with exactly
+    "The answer is (X)" where X is the letter of the correct option.
+
+scores:
+  ptrue_model: null               # null -> the generator (P(True) self-evaluation)
+  ptrue_batch_size: 64
+  ptrue_template: >
+    Question: {question}
+
+
+    Proposed answer: {answer}
+
+
+    Is the proposed answer correct? Answer with a single word, True or False.
+  # PRM (plan §4). Skywork is NOT a drop-in model id for the Qwen PRM: it takes a
+  # raw `bos + problem + "\n"` prompt with no chat template, splits steps on a
+  # single "\n", and reads sigmoid(v_head) at each step's last token instead of at
+  # an <extra_0> separator. Pick the backend, not just the checkpoint.
+  prm_backend: skywork                   # skywork | qwen25   (qwen25 kept for E1 reproducibility)
+  prm_model: Skywork/Skywork-o1-Open-PRM-Qwen-2.5-7B
+  prm_batch_size: 8
+  prm_step_separator: "\n\n"             # qwen25 backend only
+  prm_step_token: "\n"                   # skywork backend only
+  # PRM-72B subset arm DROPPED 2026-07-10 (D22): ~145 GB bf16 vs a 100 GB /home
+  # quota, robustness-only. Keys kept (unused) so awv/scores.score_prm72 still
+  # imports; scope headline is empty, so nothing invokes it.
+  prm72_model: Qwen/Qwen2.5-Math-PRM-72B
+  prm72_batch_size: 2
+  prm72_n_queries: 100
+  prm72_seed: 20260710
+
+embedding:
+  model: null                     # null -> the generator; h(q) last hidden state at final prompt token
+  batch_size: 32
+
+budget:
+  gamma: 0.0029262                # provisional; each cell's gamma* is calibrated by its pilot (plan §5)
+  overspend_tokens: 1024
+  clip_kappa: 19.0                # derived: e^{gamma*t0} - 1
+  gamma_grid: [1.0e-4, 2.0e-4, 5.0e-4, 1.0e-3, 1.5e-3, 2.0e-3, 2.9262e-3, 5.0e-3, 1.0e-2]
+  max_risk_premium: 1.5
+  max_mgf_rel_se: 0.10
+  tail_prob: 0.05
+
+engine:
+  # Legacy E1 grid, kept so the CPU stages keep running; the F campaign replaces
+  # it with the score-calibrated effective-tilt grid (awv/grids.py, plan §5) in
+  # the tables/frontier phase. Pool generation does not read this.
+  eta_grid: [0.0, 0.125, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, .inf]
+  T_bar: 64                       # rollout cap (<= m/2 so prefixes stay genuinely random)
+  S_permutations: 512             # E1 lesson: S=512 everywhere (plan §1)
+  score_column: phi_conf          # provisional primary; finalized per cell by the AUC rule (plan §4)
+  seed: 1
+
+solver:
+  n_lambdas: 60
+  readout_mean_counts: [2, 3, 4]
+
+online:
+  calib_frac: 0.6
+  k_neighbors: null
+  step_c: 0.5
+  n_stream_passes: 5
+  seed: 7
+
+eval:
+  n_seeds: 5
+  bootstrap_B: 1000
+  ci_level: 0.95

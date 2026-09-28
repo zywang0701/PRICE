@@ -1,0 +1,10 @@
+# GPU stages (00-03), install on the rented box on top of requirements.txt.
+# Bounded ranges: the vLLM logprobs structure and the Qwen-PRM remote code are
+# version-sensitive. Record `pip freeze` into outputs/versions.txt at rental
+# time before launching stage 01.
+torch>=2.4,<2.7
+vllm>=0.6.3,<0.8
+transformers>=4.46,<4.51
+accelerate>=1.0
+datasets>=3.0
+math-verify>=0.6

@@ -1,0 +1,17 @@
+# P(True): adaptive temperature when both arms adapt rollout count
+
+2026-09-16. User requests the oracle gain of adaptive temperature with adaptive rollout counts on both sides. No PRM, new inference, or manuscript replacement.
+
+Reuse E20 P(True) reward tables: Qwen 489 / Llama 496 queries; four 64+64 partitions of 128 cached rollouts, both directions, 256 permutations per half, 13 temperatures, counts 1..64. Normalization is the same pooled A-only CDF frozen for A and B. Primary common-score-independent tie rule; repeat the complete comparison under legacy score-native ties as sensitivity. No missing P(True) in evaluation pools.
+
+Reuse E17 A cost primitives M_A^n and E18 actual B prefix costs. At each lambda, joint selects (n,tau) by maximizing V_A(tau,n;q)-lambda M_A(q)^n. Each fixed-temperature arm independently selects its own per-query n under the same objective. Thus both sides have adaptive rollout count. Do not hold a common count across queries or use B per-query correctness to fit actions.
+
+Sweep lambda=0 plus 16,385 geometric points 1e-180..1e6, identical to E18. Read B cost/accuracy frontiers retrospectively at B risk budgets 2k/3k/5k/8k/12k/20k/30k, gamma=.0029262. B risk is log(mean exp(gamma actual_prefix_tokens))/gamma, not M_B^n. Mixtures interpolate complete policies on the MGF cost scale, never the log-budget scale. Evaluate against the nested half grid; if max accuracy discrepancy exceeds .03 pp, double the grid and repeat.
+
+Primary contrast: joint adaptive (n,tau) minus the best single global fixed tau with independently optimized adaptive n, at matched B risk budget. Select this global tau retrospectively on B at each budget (hindsight benchmark); do not mix temperatures to create the fixed-tau comparator. Report SC and BoN as fixed-tau endpoints, also with their own adaptive counts. The requested contrast measures the effect of permitting adaptive temperature with count reoptimization, not a pure vote-only intervention holding counts fixed.
+
+Supplemental equal-count contrast: retain each joint policy's query-specific counts and select one global tau on A at those counts for each direction/lambda. Read it at the same joint frontier endpoints and mixing probability, giving exactly identical generated-token paths/costs. Also provide a B-hindsight single global tau at the joint counts as a stricter diagnostic. These controls have different counts from the primary best-fixed frontier arm and are reported separately.
+
+Report paired query-bootstrap 95% intervals (1000 draws), freezing policies, selected global temperature, lambda endpoints and mixing weights. These are conditional pointwise intervals, not refitted/frontier-selection or simultaneous intervals. Standard grading, strict-grading and conflict-free sensitivities use the same frozen policies. Report mean realized tokens alongside risk costs, but do not describe matched risk as equal mean cost. P(True) scoring overhead is excluded from generation-token accounting on both sides.
+
+Validate A-only decisions against independent direct argmax, source hashes/qid ordering, full B outcome/cost reconstruction, matched budget mixture arithmetic, same-count path identity, and the n=32 E20 result as a source-table check. Save raw sweep points, policies, readout indices, all fixed-temperature curves, matched-budget CSV, figure, and standalone Chinese report. The figure uses scientific Matplotlib/PDF and is visually inspected. The result remains an A-estimated cross-pool oracle, not the true population oracle or a deployed controller.

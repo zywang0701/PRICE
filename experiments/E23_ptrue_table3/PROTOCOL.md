@@ -1,0 +1,13 @@
+# P(True) Table 3 comparison
+
+User requests the full baseline comparison, irrespective of adaptive-voting gain. Reuse frozen E22 P(True) models, original Table 3's exact six entropic-risk budgets per model, E02 query/path cohort, E16 repaired grading and E22 score versions. No new GPU scoring or controller training.
+
+The main PRICE row is E22's calibration-selected deployment: fixed-temperature fallback with adaptive rollout count. At the new six budget columns, choose its fixed temperature/lookahead using E22 tune-query outputs only, following the same rule as E22. Freeze those choices before evaluating these columns. Keep the globally selected adaptive candidate as a supplementary row, not the primary claim.
+
+Recompute all six Table 3 baseline families on the identical 64 replay paths, horizon and labels. SC and BoN use E22 P(True), normalization and score-native ties. CISC uses raw P(True), the original 80-point temperature grid and count sweep; choose its temperature by mean accuracy at n=5,10 on E22's independent tune queries (16 paths each), then freeze. Adaptive-Consistency and ESC retain their original stopping/voting code conventions and parameter sweeps. DeepConf retains its intrinsic LGC/bottom-10/tail scores and the offline family actually reported in Table 3; do not relabel P(True) as DeepConf. Preserve every baseline count/parameter grid from the original baseline source.
+
+Use upper frontiers and valid random mixtures on the MGF cost scale for every method. Report accuracy and actual mean tokens/risk, including saturation or infeasible readouts. This corrects the legacy table's interpolation in log-MGF risk, and uses repaired labels, so old printed baseline numbers need not persist. Also retain a clearly labeled legacy-style risk-axis interpolation diagnostic, but do not claim it is a feasible random mixture.
+
+Uncertainty: 800 paired query-bootstrap draws, recompute each method's frontier and best baseline on each draw. Models, CISC temperature and calibration-selected PRICE arm stay frozen. This conditions on logged pools and learned models; it excludes retraining and new generation. Baseline parameter envelopes and global price readouts are retrospective, as in Table 3. Costs count generated rollout tokens only; scorer/controller overhead is excluded.
+
+Validate vectorized baseline winners/costs against the existing baseline implementation with legacy scores/labels on sampled queries; verify SC/BoN directly against frozen P(True) replay; reconcile published cells with saved per-query R/C/M; validate mixture budgets. Save a standalone Markdown report, CSV and blue-colored LaTeX preview without editing main_arxiv.tex.

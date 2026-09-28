@@ -1,0 +1,10 @@
+# Cell llama32-3b_math500: unsloth/Llama-3.2-3B-Instruct x math500 (plan §3.3; gates omitted per 2026-07-08 decision)
+cell:
+  name: llama32-3b_math500
+  model_key: llama32-3b
+  task: math500
+generation:
+  model: unsloth/Llama-3.2-3B-Instruct
+  shard_size: 50
+data:
+  dataset: math500

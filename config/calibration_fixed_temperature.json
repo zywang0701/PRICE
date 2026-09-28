@@ -1,0 +1,5 @@
+{
+  "_note": "Calibration-fixed voting temperature per generator: the index k_fixed into the cell's inverse-temperature grid (etas) and its value tau_fixed. Selected on MATH-train only, by the empirical iid Chernoff rate criterion of the earlier calibration experiment (E13, with the E16 answer-set repair confirming the same choice). Read by E17 and E18 when experiments/E16_answer_sets/<cell>/selection.json is absent.",
+  "qwen":  {"k_fixed": 5, "tau_fixed": 2.5937, "selection_uses_test_labels": false},
+  "llama": {"k_fixed": 3, "tau_fixed": 0.938,  "selection_uses_test_labels": false}
+}

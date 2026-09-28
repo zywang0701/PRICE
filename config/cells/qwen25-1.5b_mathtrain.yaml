@@ -1,0 +1,20 @@
+# Cell qwen25-1.5b_mathtrain: Qwen/Qwen2.5-1.5B-Instruct x MATH-train.
+#
+# The calibration corpus for the learned-primitives study: primitives are fit
+# here and evaluated on qwen25-1.5b_math500, so this cell must match that one
+# in every generation parameter except the query set and the pool depth.
+#
+# m=64 rather than 128: at fixed GPU budget, regression targets want more
+# QUERIES rather than deeper pools (target label noise averages out over N,
+# while the rare "some tau>0 rescues this query" events only arrive with more
+# queries). Split 16 probe / 48 target, mirroring lp_prep.py's discipline.
+cell:
+  name: qwen25-1.5b_mathtrain
+  model_key: qwen25-1.5b
+  task: mathtrain
+generation:
+  model: Qwen/Qwen2.5-1.5B-Instruct
+  m_rollouts: 64
+  shard_size: 50
+data:
+  dataset: mathtrain

@@ -1,0 +1,18 @@
+# Cell llama32-3b_mathtrain: unsloth/Llama-3.2-3B-Instruct x MATH-train.
+#
+# The Llama calibration corpus for the stopping-time policy (paper's second
+# model column; 8B deferred per 2026-08-19 decision): mirrors
+# qwen25-1.5b_mathtrain exactly -- same query set, m=64 (queries beat depth
+# for regression targets), 16 probe / 48 target split downstream -- and must
+# match llama32-3b_math500 in every generation parameter except the query set
+# and pool depth.
+cell:
+  name: llama32-3b_mathtrain
+  model_key: llama32-3b
+  task: mathtrain
+generation:
+  model: unsloth/Llama-3.2-3B-Instruct
+  m_rollouts: 64
+  shard_size: 50
+data:
+  dataset: mathtrain
