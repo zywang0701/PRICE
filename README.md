@@ -1,4 +1,4 @@
-# PRICE: Joint Adaptive Voting and Rollout Allocation for Token-Budgeted LLM Test-time Compute and Its Pareto Frontier
+# Pareto Frontier of LLM Test-Time Compute: Adaptive Rollouts and Voting Under Token Budgets
 
 [![Paper](https://img.shields.io/badge/Paper-arXiv-b31b1b.svg)](#citation)
 [![Data](https://img.shields.io/badge/Data-Hugging%20Face-yellow.svg)](https://huggingface.co/datasets/zach-wang/PRICE-rollouts)
@@ -134,7 +134,7 @@ bash experiments/run_all.sh paper        # tables and figures into build/
 
 ```bibtex
 @article{wang2026price,
-  title   = {PRICE: Joint Adaptive Voting and Rollout Allocation for Token-Budgeted LLM Test-time Compute and Its Pareto Frontier},
+  title   = {Pareto Frontier of LLM Test-Time Compute: Adaptive Rollouts and Voting Under Token Budgets},
   author  = {Wang, Zhenyu and Zhu, Xiaozhi and Hu, Yifan},
   journal = {arXiv preprint},
   year    = {2026},
