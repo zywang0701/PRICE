@@ -30,10 +30,10 @@ LLM test-time compute improves accuracy by drawing more rollouts and aggregating
 
 ### 1. Adaptive voting raises the accuracy ceiling
 
-Call a temperature τ *consistent* for a query if the Boltzmann vote at τ returns the correct answer almost surely as the number of rollouts grows, and call a query *solvable* if some temperature is consistent for it. Under self-consistency a query is solvable only when the correct answer is the most frequent one; under best-of-n only when its rollouts carry the highest scores. These sets differ, and the set of queries solvable by an adaptive rule is their union over τ, so
+Under self-consistency, a query $q$ is solvable only when the correct answer is the most frequent one. Under best-of-n, only when its rollouts carry the highest scores. These sets differ, and the set of queries solvable by an adaptive rule is their union over temperatures $τ$, so
 
 $$
-\mathbb{P}_q\big[\,q \text{ is solvable by adaptive voting}\,\big]\ \ge\ \sup_{\tau}\ \mathbb{P}_q\big[\,q \text{ is solvable by the fixed rule } \tau\,\big].
+\mathbb{P}_q\big[q \text{ is solvable by adaptive voting}\big]\ \ge\ \sup_{\tau}\ \mathbb{P}_q\big[q \text{ is solvable by the fixed rule } \tau\big].
 $$
 
 Drawing more rollouts under a fixed rule can never solve a query outside that rule's set; adapting the rule can. On MATH-500 the gap is 5.3 points on Qwen2.5-1.5B and 2.8 on Llama-3.2-3B over the best single temperature, and best-of-n on its own solves fewer than a fifth of the queries. Appendix A of the paper characterizes the consistency sets and when the inequality is strict.
