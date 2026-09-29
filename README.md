@@ -4,7 +4,7 @@
 [![Data](https://img.shields.io/badge/Data-Hugging%20Face-yellow.svg)](https://huggingface.co/datasets/zach-wang/PRICE-rollouts)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Zhenyu Wang** (Rutgers University, zw425@stat.rutgers.edu) · **Xiaozhi Zhu** (Meta) · **Yifan Hu** (Rutgers University, yifan.hu@rutgers.edu)
+**Zhenyu Wang** (Rutgers University) · **Xiaozhi Zhu** (Meta) · **Yifan Hu** (Rutgers University)
 
 LLM test-time compute improves accuracy by drawing more rollouts and aggregating them with a voting rule. The improvement comes with token costs: every rollout spends tokens, and in practice the tokens come out of a budget that has to cover a whole stream of queries. This work answers the following question.
 
