@@ -20,10 +20,10 @@ LLM test-time compute improves accuracy by drawing more rollouts and aggregating
 **Theory**
 1. [Adaptive voting raises the accuracy ceiling.](#1-adaptive-voting-raises-the-accuracy-ceiling) A query is solvable by a voting rule if that rule returns the correct answer given enough rollouts. Choosing the rule per query solves every query that some rule solves, so its ceiling is at least that of any fixed rule.
 2. [No fixed rule is best at every budget, so the rule should adapt.](#2-no-fixed-rule-is-best-at-every-budget-so-the-rule-should-adapt) The cost-accuracy frontiers of any two fixed rules can cross, while the adaptive frontier dominates every fixed rule at every budget.
-3. [The adaptive frontier has a closed form at large budgets.](#3-the-adaptive-frontier-has-a-closed-form-at-large-budgets) The ceiling is the coverage of solvable queries, and the gap to it closes exponentially at the worst exchange rate among the solvable queries.
+3. [The adaptive frontier has a closed form at large budgets.](#3-the-adaptive-frontier-has-a-closed-form-at-large-budgets) The ceiling is the coverage of solvable queries plus the residual accuracy on the rest, and the gap to it closes exponentially at the worst exchange rate among the solvable queries. The data confirm the rate.
 
 **Empirical** (MATH-500, Qwen2.5-1.5B and Llama-3.2-3B)
-1. [PRICE-oracle.](#1-price-oracle-how-much-adapting-the-count-and-the-rule-is-worth) Adapting the count is worth 2 to 9 accuracy points at matched budget; adapting the rule adds 2 to 3 points on top of the hindsight-best fixed rule. The large-budget law holds on the data.
+1. [PRICE-oracle.](#1-price-oracle-how-much-adapting-the-count-and-the-rule-is-worth) Adapting the count is worth 2 to 9 accuracy points at matched budget; adapting the rule adds 2 to 3 points on top of the hindsight-best fixed rule.
 2. [PRICE-deployed.](#2-price-deployed-against-six-deployed-methods) Beats six deployed methods at every budget, by +6.4 / +7.3 points at the tightest budgets, and needs up to 2.8× / 3.5× fewer tokens than self-consistency at matched accuracy.
 
 ## Theory
@@ -50,7 +50,29 @@ Two theorems make this precise. For any two temperatures there is a query popula
 
 ### 3. The adaptive frontier has a closed form at large budgets
 
-Budgets are entropic-risk token budgets, b = (1/γ) log E[exp(γ L)], which bound the tail of the realized spend rather than only its mean. Under this budget the optimal adaptive policy decouples through one dual price λ: the price decides each query's rollout count, and the count decides its voting rule. As b grows, accuracy rises toward a ceiling, the coverage of solvable queries plus the residual accuracy on the rest, and the gap closes exponentially in b. The rate is the worst *exchange rate* among the solvable queries, the per-rollout error decay of a query divided by the risk-adjusted tokens one of its rollouts costs, because at large budgets the remaining tokens flow to the hardest queries that can still be solved.
+Budgets are entropic-risk token budgets, $b=\tfrac1\gamma\log\mathbb{E}[e^{\gamma L}]$, which bound the tail of the realized spend rather than only its mean. Under this budget the optimal adaptive policy decouples through one dual price λ: the price decides each query's rollout count, and the count decides its voting rule. Let $R^{\mathrm{ad}}(b)$ be the best accuracy attainable at budget $b$ by adaptive voting, and $\mathcal{C}^{\mathrm{ad}}$ the set of solvable queries from Theory 1. As $b\to\infty$, accuracy rises to a ceiling that splits into the coverage of solvable queries and the residual accuracy on the rest:
+
+$$
+R^{\infty,\mathrm{ad}}=\mathbb{P}_q\big[\mathcal{C}^{\mathrm{ad}}\big]+\mathbb{E}_q\Big[\mathbf{1}\{q\notin\mathcal{C}^{\mathrm{ad}}\}\,\sup_{\tau,n}V_\tau(n;q)\Big].
+$$
+
+How fast the gap closes is set by an exchange rate per query. For a solvable query, the vote's error decays exponentially in the number of rollouts at rate $I^{\mathrm{ad}}(q)$ under its best consistent temperature, while one rollout costs $\tfrac1\gamma\log M(q)$ risk-adjusted tokens, so
+
+$$
+\frac{I^{\mathrm{ad}}(q)}{\tfrac1\gamma\log M(q)}=\frac{\text{per-rollout error decay}}{\text{per-rollout token cost}}=\text{error decay per token}.
+$$
+
+At large budgets the easy and the unsolvable queries have saturated, and the remaining tokens flow to the hardest queries that can still be solved. The population therefore approaches its ceiling at the worst exchange rate among the solvable queries:
+
+$$
+r^{\mathrm{ad}}:=\operatorname*{ess\,inf}_{q\in\mathcal{C}^{\mathrm{ad}}}\ \frac{I^{\mathrm{ad}}(q)}{\tfrac1\gamma\log M(q)},
+\qquad
+R^{\infty,\mathrm{ad}}-R^{\mathrm{ad}}(b)=e^{-\,r^{\mathrm{ad}}\,b\,(1+o(1))}\quad\text{as } b\to\infty .
+$$
+
+The data agree. On MATH-500 the gap between PRICE-oracle and its ceiling decays almost linearly on a log scale, and the terminal slope sits at the far left of the fitted per-query exchange rates: 14.5× below the median on Qwen2.5-1.5B, 17.1× on Llama-3.2-3B.
+
+<p align="center"><img src="assets/fig_ptrue_rate_validation_qwen.png" width="85%" alt="The large-budget law against the data"></p>
 
 ## Empirical
 
@@ -59,10 +81,6 @@ Budgets are entropic-risk token budgets, b = (1/γ) log E[exp(γ L)], which boun
 PRICE-oracle estimates each query's accuracy curves and cost from a labeled half of its own rollout pool, solves the priced problem, and is evaluated on the other half. It is a benchmark for what joint adaptation can give, not a deployable method. Green numbers are the gain of an adaptive count over a fixed count under the same rule; red numbers are the gain of adapting the rule as well, over the hindsight-best fixed temperature with an adaptive count.
 
 <p align="center"><img src="assets/tab_oracle.png" width="92%" alt="PRICE-oracle against fixed rules on MATH-500"></p>
-
-The large-budget law of Theory 3 holds on the data. The gap between PRICE-oracle and its ceiling decays almost linearly on a log scale, and the terminal slope sits at the far left of the fitted per-query exchange rates: 14.5× below the median on Qwen2.5-1.5B, 17.1× on Llama-3.2-3B. The population approaches its ceiling at the pace of its slowest solvable queries.
-
-<p align="center"><img src="assets/fig_ptrue_rate_validation_qwen.png" width="85%" alt="The large-budget law against the data"></p>
 
 ### 2. PRICE-deployed: against six deployed methods
 
