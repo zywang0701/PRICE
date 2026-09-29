@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use PRICE, please cite the accompanying preprint."
+type: software
+title: "PRICE: Pareto Frontier of LLM Test-Time Compute"
+repository-code: "https://github.com/zywang0701/PRICE"
+license: MIT
+authors:
+  - family-names: Wang
+    given-names: Zhenyu
+    affiliation: "Rutgers University"
+  - family-names: Zhu
+    given-names: Xiaozhi
+    affiliation: "Meta"
+  - family-names: Hu
+    given-names: Yifan
+    affiliation: "Rutgers University"
+preferred-citation:
+  type: unpublished
+  title: "Pareto Frontier of LLM Test-Time Compute: Adaptive Rollouts and Voting Under Token Budgets"
+  authors:
+    - family-names: Wang
+      given-names: Zhenyu
+    - family-names: Zhu
+      given-names: Xiaozhi
+    - family-names: Hu
+      given-names: Yifan
+  year: 2026
+  notes: "Preprint."

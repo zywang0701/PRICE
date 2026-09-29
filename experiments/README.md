@@ -1,6 +1,6 @@
 # Reproducing the paper
 
-This is the reproduction guide for the experiment chain. The project page, results and the readable algorithm are in the [top-level README](../README.md). Companion data: [`zach-wang/PRICE-rollouts`](https://huggingface.co/datasets/zach-wang/PRICE-rollouts) on Hugging Face. All commands below run from the repository root.
+This is the reproduction guide for the experiment chain. Start with the [project overview](../README.md), [full results](../docs/results.md) or [method and theory](../docs/method.md). Companion data: [`zach-wang/PRICE-rollouts`](https://huggingface.co/datasets/zach-wang/PRICE-rollouts) on Hugging Face. All commands below run from the repository root.
 
 PRICE (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t)
 allocates a token budget across queries by pricing rollouts, and chooses the Boltzmann voting
@@ -28,6 +28,8 @@ pytest tests/                            # CPU unit tests of the shared library
 (default: `build/`) is where the paper tables and figures are written.
 
 ## Reproducing the paper
+
+Run the branches in the order below. The deployed branch uses shared replay and grading artifacts from the oracle branch; the paper branch needs the outputs of both.
 
 ```bash
 bash experiments/run_all.sh oracle       # PRICE-oracle branch    E02 → E16 → E17 → E18 → E20 → E21 → E27

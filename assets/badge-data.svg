@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="118" height="30" role="img" aria-label="Rollout data">
+  <rect width="118" height="30" rx="5" fill="#1769aa"/>
+  <g fill="none" stroke="#fff" stroke-width="1.2" stroke-linejoin="round">
+    <ellipse cx="19" cy="9" rx="6" ry="2.5"/>
+    <path d="M13 9v11c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V9M13 14.5c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5"/>
+  </g>
+  <text x="71" y="19.5" text-anchor="middle" fill="#fff" font-family="Verdana,Arial,sans-serif" font-size="11" font-weight="bold" letter-spacing=".5">DATA</text>
+</svg>
