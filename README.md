@@ -22,7 +22,7 @@
 
 ## Introduction
 
-More rollouts can improve an LLM's answer, but every rollout spends tokens. With a budget shared across queries, the decision is both **how much to generate** and **how to vote** on the answers.
+More rollouts can improve an LLM's answer, but every rollout spends tokens. With a budget shared across queries, the decision is both **how many rollouts to generate** and **how to vote** on the answers.
 
 **PRICE** (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t) jointly adapts the rollout count and voting rule for each query to maximize accuracy under a token budget. A shared price balances the expected accuracy gain against the cost of more generation: easy queries finish early, while queries that benefit from more compute receive more rollouts.
 
