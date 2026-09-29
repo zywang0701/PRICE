@@ -11,7 +11,7 @@ LLM test-time compute improves accuracy by drawing more rollouts and aggregating
 > [!IMPORTANT]
 > **How to adaptively choose the number of rollouts to draw and the voting rule to apply for each query, so that the accuracy is maximized under a token budget?**
 
-Self-consistency, score-weighted voting and best-of-n are one family, the Boltzmann weighted vote at temperature τ, so choosing the voting rule is choosing τ. **PRICE** (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t) turns the budget into a shadow price on rollouts and, query by query, picks the rollout count *and* the temperature that maximize accuracy minus priced cost.
+Self-consistency, score-weighted voting and best-of-n are one family, the Boltzmann weighted vote at temperature τ, so choosing the voting rule is choosing τ. **PRICE** (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t) adaptively picks the rollout count *and* the temperature that maximize accuracy, query by query, under a pre-specified token budget.
 
 <p align="center"><img src="assets/fig_illustration.png" width="92%" alt="PRICE decides how to spend; PRICE yields the best Pareto frontier"></p>
 
