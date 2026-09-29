@@ -45,6 +45,7 @@ bash experiments/run_all.sh paper        # tables into build/tables, figures int
 | Figures: tokens and counts by MATH level (appendix) | `paper_assets/ptrue_figures.py` | E26 |
 | Table: prospective prices (appendix) | `paper_assets/ptrue_paper_assets.py` → `tab_ptrue_cost_prospective.tex` | E22, E25 |
 | Table: rate sensitivity (appendix) | `paper_assets/ptrue_rate_allocation.py` | E26 |
+| README figure: solvable-query fractions by voting rule (not in the paper) | `paper_assets/readme_solvable_fraction.py` → `assets/fig_solvable.png` | E16, E20, E22 |
 
 Each `experiments/E*/` folder is one step of the chain and keeps its `PROTOCOL.md`, the design
 written down before that step was run. The steps, in dependency order:
