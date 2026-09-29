@@ -20,7 +20,7 @@ LLM test-time compute improves accuracy by drawing more rollouts and aggregating
 **Theory**
 1. [Adaptive voting raises the accuracy ceiling.](#1-adaptive-voting-raises-the-accuracy-ceiling) A query is solvable by a voting rule if that rule returns the correct answer given enough rollouts. Choosing the rule per query solves every query that some rule solves, so its ceiling is at least that of any fixed rule.
 2. [No fixed rule is best at every budget, so the rule should adapt.](#2-no-fixed-rule-is-best-at-every-budget-so-the-rule-should-adapt) The cost-accuracy frontiers of any two fixed rules can cross, while the adaptive frontier dominates every fixed rule at every budget.
-3. [The adaptive frontier has a closed form at large budgets.](#3-the-adaptive-frontier-has-a-closed-form-at-large-budgets) Accuracy converges to its ceiling exponentially, at a rate set by the hardest solvable queries. The data confirm the rate.
+3. [Pareto frontier of LLM test-time-compute has a closed form at large budgets.](#3-the-adaptive-frontier-has-a-closed-form-at-large-budgets) Accuracy converges to its ceiling exponentially, at a rate set by the hardest solvable queries. The data confirm the rate.
 
 **Empirical** (MATH-500, Qwen2.5-1.5B and Llama-3.2-3B)
 1. [PRICE-oracle.](#1-price-oracle-how-much-adapting-the-count-and-the-rule-is-worth) Adapting the count is worth 2 to 9 accuracy points at matched budget; adapting the rule adds 2 to 3 points on top of the hindsight-best fixed rule.
