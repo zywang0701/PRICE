@@ -6,59 +6,63 @@
 
 **Zhenyu Wang** (Rutgers University, zw425@stat.rutgers.edu) · **Xiaozhi Zhu** (Meta) · **Yifan Hu** (Rutgers University, yifan.hu@rutgers.edu)
 
-Given a token budget that has to cover a stream of queries, how many rollouts should each query get, and how should its rollouts be aggregated into an answer?
-PRICE (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t) answers both at once.
-It turns the budget into a shadow price on rollouts and, query by query, picks the rollout count *and* the voting rule that maximize accuracy minus priced cost.
-Self-consistency, score-weighted voting and best-of-n are one family, the Boltzmann weighted vote at temperature τ, so choosing the rule is choosing τ.
+LLM test-time compute improves accuracy by drawing more rollouts and aggregating them with a voting rule. The improvement comes with token costs: every rollout spends tokens, and in practice the tokens come out of a budget that has to cover a whole stream of queries. This work answers the following question.
+
+> [!IMPORTANT]
+> **How to adaptively choose the number of rollouts to draw and the voting rule to apply for each query, so that the accuracy is maximized under a token budget?**
+
+Self-consistency, score-weighted voting and best-of-n are one family, the Boltzmann weighted vote at temperature τ, so choosing the voting rule is choosing τ. PRICE (**P**riced **R**ollouts and **I**nference-time voting-rule **C**hoice under a token budg**E**t) turns the budget into a shadow price on rollouts and, query by query, picks the rollout count *and* the temperature that maximize accuracy minus priced cost.
 
 <p align="center"><img src="assets/fig_illustration.png" width="92%" alt="PRICE decides how to spend; PRICE yields the best Pareto frontier"></p>
 
 ## Takeaways
 
-### 1. No fixed voting rule is best at every budget. Fixed-rule frontiers cross; the adaptive frontier sits above all of them.
+**Theory**
+1. [Adaptive voting raises the accuracy ceiling.](#1-adaptive-voting-raises-the-accuracy-ceiling) A query is solvable by a voting rule if that rule returns the correct answer given enough rollouts. Choosing the rule per query solves every query that some rule solves, so its ceiling is at least that of any fixed rule.
+2. [No fixed rule is best at every budget, so the rule should adapt.](#2-no-fixed-rule-is-best-at-every-budget-so-the-rule-should-adapt) The cost-accuracy frontiers of any two fixed rules can cross, while the adaptive frontier dominates every fixed rule at every budget.
+3. [The adaptive frontier has a closed form at large budgets.](#3-the-adaptive-frontier-has-a-closed-form-at-large-budgets) The ceiling is the coverage of solvable queries, and the gap to it closes exponentially at the worst exchange rate among the solvable queries.
 
-Which rule wins depends on how much you can spend. Two theorems make this precise: the cost-accuracy frontiers of any two fixed temperatures can cross, so no fixed rule is universally best over all budgets, while the frontier of adaptive voting, which chooses the rule per query, dominates every fixed rule at every budget. The figure shows both on MATH-500: the fixed-rule frontiers swap order (red dots), the adaptive frontier stays on top.
+**Empirical** (MATH-500, Qwen2.5-1.5B and Llama-3.2-3B)
+1. [PRICE-oracle.](#1-price-oracle-how-much-adapting-the-count-and-the-rule-is-worth) Adapting the count is worth 2 to 9 accuracy points at matched budget; adapting the rule adds 2 to 3 points on top of the hindsight-best fixed rule. The large-budget law holds on the data.
+2. [PRICE-deployed.](#2-price-deployed-against-six-deployed-methods) Beats six deployed methods at every budget, by +6.4 / +7.3 points at the tightest budgets, and needs up to 2.8× / 3.5× fewer tokens than self-consistency at matched accuracy.
+
+## Theory
+
+### 1. Adaptive voting raises the accuracy ceiling
+
+Call a temperature τ *consistent* for a query if the Boltzmann vote at τ returns the correct answer almost surely as the number of rollouts grows, and call a query *solvable* if some temperature is consistent for it. Under self-consistency a query is solvable only when the correct answer is the most frequent one; under best-of-n only when its rollouts carry the highest scores. These sets differ, and the set of queries solvable by an adaptive rule is their union over τ. Drawing more rollouts under a fixed rule can never solve a query outside that rule's set; adapting the rule can, and its coverage is at least as large as any fixed rule's. Appendix A of the paper characterizes the consistency sets and when the inequality is strict.
+
+### 2. No fixed rule is best at every budget, so the rule should adapt
+
+Two theorems make this precise. For any two temperatures there is a query population on which their cost-accuracy frontiers cross, so no fixed temperature is optimal across all populations and budgets. The frontier of adaptive voting, which chooses the temperature per query, dominates every fixed-temperature frontier at every budget. The figure shows both on MATH-500: the best fixed temperature changes at the red markers, and the adaptive frontier lies above all of them.
 
 <p align="center"><img src="assets/fig_crossing.png" width="85%" alt="Fixed-voting frontiers cross, while the adaptive frontier dominates"></p>
 
-### 2. Adapt the count *and* the rule. The rule adds a gain on top of the count.
+### 3. The adaptive frontier has a closed form at large budgets
 
-On MATH-500, letting the number of rollouts vary across queries is worth 2 to 9 accuracy points at matched budget. Letting the voting rule vary too adds another 2 to 3 points, on top of the hindsight-best fixed rule. Accuracy in % at matched realized budget b; PRICE-oracle estimates each query's primitives from a labeled half of its own rollout pool and is evaluated on the other half.
+Budgets are entropic-risk token budgets, b = (1/γ) log E[exp(γ L)], which bound the tail of the realized spend rather than only its mean. Under this budget the optimal adaptive policy decouples through one dual price λ: the price decides each query's rollout count, and the count decides its voting rule. As b grows, accuracy rises toward a ceiling, the coverage of solvable queries plus the residual accuracy on the rest, and the gap closes exponentially in b. The rate is the worst *exchange rate* among the solvable queries, the per-rollout error decay of a query divided by the risk-adjusted tokens one of its rollouts costs, because at large budgets the remaining tokens flow to the hardest queries that can still be solved.
 
-| | Qwen2.5-1.5B ||||||| Llama-3.2-3B |||||
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **budget b →** | 2k | 5k | 8k | 12k | 20k | 30k | 2k | 5k | 8k | 12k | 20k | 30k |
-| SC, fixed count | 48.4 | 55.8 | 59.6 | 62.6 | 65.3 | 66.6 | 40.9 | 47.4 | 51.7 | 54.5 | 57.3 | 59.0 |
-| SC, adaptive count | 56.3 | 61.6 | 64.0 | 65.8 | 67.5 | 68.4 | 49.7 | 54.6 | 57.0 | 58.5 | 60.4 | 61.5 |
-| Best fixed τ (hindsight), adaptive count | 56.9 | 62.2 | 64.5 | 66.2 | 67.8 | 68.5 | 49.8 | 54.6 | 57.0 | 58.5 | 60.4 | 61.5 |
-| **PRICE-oracle** (adaptive count and rule) | **58.9** | **64.8** | **67.4** | **69.1** | **70.9** | **71.7** | **51.5** | **56.6** | **58.7** | **60.3** | **62.3** | **63.5** |
-| *gain over the best fixed rule* | +2.0 | +2.6 | +2.9 | +2.9 | +3.1 | +3.2 | +1.7 | +2.0 | +1.7 | +1.8 | +1.9 | +2.0 |
+## Empirical
 
-### 3. Deployed, PRICE beats every baseline at every budget, and the lead widens as the budget shrinks.
+### 1. PRICE-oracle: how much adapting the count and the rule is worth
 
-PRICE-deployed predicts each query's accuracy curves and cost from a labeled calibration corpus (MATH-train) plus label-free statistics of the rollouts drawn so far, and stops sequentially. Against six deployed methods on the same rollout pools, orderings and horizon, it is the best entry in every column: +6.4 and +7.3 points over the best baseline at the tightest budgets, +0.5 and +1.0 at the loosest. At matched accuracy it needs up to 2.8× (Qwen) and 3.5× (Llama) fewer tokens than self-consistency.
+PRICE-oracle estimates each query's accuracy curves and cost from a labeled half of its own rollout pool, solves the priced problem, and is evaluated on the other half. It is a benchmark for what joint adaptation can give, not a deployable method. Green numbers are the gain of an adaptive count over a fixed count under the same rule; red numbers are the gain of adapting the rule as well, over the hindsight-best fixed temperature with an adaptive count.
 
-| | Qwen2.5-1.5B ||||||| Llama-3.2-3B |||||
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **budget b →** | 3.7k | 5.3k | 6.7k | 11.6k | 14.5k | 32.0k | 4.4k | 6.2k | 8.1k | 13.8k | 17.4k | 40.4k |
-| Self-consistency | 54.9 | 58.0 | 59.8 | 63.2 | 64.2 | 67.1 | 47.3 | 49.7 | 51.7 | 55.2 | 56.5 | 59.9 |
-| Best-of-n | 49.8 | 48.1 | 46.0 | 41.2 | 38.9 | 30.4 | 42.7 | 41.3 | 39.8 | 35.9 | 33.9 | 27.1 |
-| CISC | 54.9 | 55.0 | 59.8 | 62.3 | 64.3 | 66.8 | 47.3 | 47.3 | 51.8 | 54.3 | 56.5 | 59.7 |
-| Adaptive-Consistency | 46.9 | 47.3 | 48.9 | 48.9 | 48.9 | 48.9 | 40.7 | 40.7 | 40.7 | 40.7 | 44.4 | 44.4 |
-| ESC | 53.9 | 56.7 | 56.7 | 62.6 | 63.7 | 65.9 | 47.4 | 50.2 | 50.2 | 55.5 | 56.9 | 59.2 |
-| DeepConf | 52.2 | 58.4 | 58.4 | 63.9 | 63.9 | 66.9 | 43.9 | 50.2 | 50.2 | 55.8 | 55.8 | 59.5 |
-| **PRICE-deployed** | **61.3** | **63.3** | **64.3** | **66.2** | **66.6** | **67.6** | **54.6** | **56.3** | **57.5** | **59.2** | **59.7** | **61.0** |
-| *gain over the best baseline* | +6.4 | +4.9 | +4.5 | +2.2 | +2.2 | +0.5 | +7.3 | +6.1 | +5.7 | +3.3 | +2.8 | +1.0 |
+<p align="center"><img src="assets/tab_oracle.png" width="92%" alt="PRICE-oracle against fixed rules on MATH-500"></p>
 
-<p align="center"><img src="assets/fig_ptrue_deployed_frontier.png" width="85%" alt="The frontier of PRICE-deployed against SC and ESC"></p>
-
-Budgets are entropic-risk token budgets, b = (1/γ) log E[exp(γ L)] with γ = log(20)/1024, so that the fraction of queries overspending b by more than 1,024 tokens stays below 5%. The fixed-count rows are read at the count that spends the budget; the adaptive methods at the best feasible point of their own sweep.
-
-### 4. The frontier has a closed form at large budgets: the ceiling is set by which queries some voting rule can solve, the speed by the slowest of them.
-
-For the class of adaptive committed policies we derive the large-budget asymptotics of the Pareto frontier. The accuracy ceiling is the coverage of queries that adaptive voting solves with probability approaching one, plus the residual accuracy on the rest, and adaptive voting covers at least as many queries as any fixed rule. The gap to the ceiling closes exponentially in the budget at the worst-case exchange rate among the solvable queries, because at large budgets the remaining tokens flow to the hardest queries that can still be solved. The data agree: the measured terminal slope sits at the far left of the fitted per-query exchange rates, 14.5× below the median on Qwen and 17.1× on Llama.
+The large-budget law of Theory 3 holds on the data. The gap between PRICE-oracle and its ceiling decays almost linearly on a log scale, and the terminal slope sits at the far left of the fitted per-query exchange rates: 14.5× below the median on Qwen2.5-1.5B, 17.1× on Llama-3.2-3B. The population approaches its ceiling at the pace of its slowest solvable queries.
 
 <p align="center"><img src="assets/fig_ptrue_rate_validation_qwen.png" width="85%" alt="The large-budget law against the data"></p>
+
+### 2. PRICE-deployed: against six deployed methods
+
+PRICE-deployed predicts each query's accuracy curves and cost from a labeled calibration corpus (MATH-train) plus label-free statistics of the rollouts drawn so far, refreshes the predictions after every rollout, and stops when the predicted gain over the next few rollouts no longer covers the priced marginal cost. All methods are replayed on the same rollout pools, orderings and horizon with their original voting and stopping conventions. Red numbers are PRICE-deployed minus the best baseline in the column.
+
+<p align="center"><img src="assets/tab_deployed.png" width="92%" alt="PRICE-deployed against six baselines on MATH-500"></p>
+
+The lead widens as the budget shrinks, from +0.5 / +1.0 points at the loosest budgets to +6.4 / +7.3 at the tightest. On the frontier, PRICE-deployed lies above self-consistency and ESC at every budget and reaches the same accuracy with up to 2.8× (Qwen) and 3.5× (Llama) fewer tokens than self-consistency.
+
+<p align="center"><img src="assets/fig_ptrue_deployed_frontier.png" width="85%" alt="The frontier of PRICE-deployed against SC and ESC"></p>
 
 ## How PRICE decides
 
